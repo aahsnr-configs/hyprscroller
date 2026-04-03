@@ -18,12 +18,10 @@
 #include "dispatchers.h"
 #include "hyprlang.hpp"
 #include "layout/canvas/layout.h"
+#include "model/stack.h" // for set_width_fractions
 #include "overview/render.h"
 
 HANDLE PHANDLE = nullptr;
-
-// Global width presets (fractions) used by all stacks.
-std::vector<double> g_widthFractions;
 
 namespace {
 std::string log_file_path() {
@@ -51,16 +49,6 @@ void init_logging() {
 #endif
   spdlog::flush_on(spdlog::level::debug);
   spdlog::info("logging initialized path={}", path);
-}
-
-double preset_to_fraction(const std::string &preset) {
-  if (preset == "onethird")
-    return 1.0 / 3.0;
-  if (preset == "onehalf")
-    return 0.5;
-  if (preset == "twothirds")
-    return 2.0 / 3.0;
-  return 0.5;
 }
 
 double parse_width_token(const std::string &token) {
@@ -147,15 +135,17 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
   auto *configValue = HyprlandAPI::getConfigValue(
       PHANDLE, "plugin:scroller:column_default_width");
+  std::vector<double> widthFractions;
   if (configValue) {
     std::string presetStr = std::any_cast<std::string>(configValue->getValue());
-    parse_width_presets(presetStr, g_widthFractions);
-    spdlog::info("Parsed width presets: {} fractions", g_widthFractions.size());
-    for (size_t i = 0; i < g_widthFractions.size(); ++i)
-      spdlog::debug("  [{}] = {}", i, g_widthFractions[i]);
+    parse_width_presets(presetStr, widthFractions);
+    spdlog::info("Parsed width presets: {} fractions", widthFractions.size());
+    for (size_t i = 0; i < widthFractions.size(); ++i)
+      spdlog::debug("  [{}] = {}", i, widthFractions[i]);
   } else {
-    g_widthFractions = {1.0 / 3.0, 0.5, 2.0 / 3.0};
+    widthFractions = {1.0 / 3.0, 0.5, 2.0 / 3.0};
   }
+  ScrollerModel::set_width_fractions(widthFractions);
 
   dispatchers::addDispatchers();
 

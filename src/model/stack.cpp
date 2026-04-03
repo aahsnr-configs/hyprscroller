@@ -25,6 +25,16 @@ extern HANDLE PHANDLE;
 
 namespace ScrollerModel {
 namespace {
+std::vector<double> s_widthFractions;
+}
+
+void set_width_fractions(const std::vector<double> &fractions) {
+  s_widthFractions = fractions;
+}
+
+const std::vector<double> &get_width_fractions() { return s_widthFractions; }
+
+namespace {
 double stack_local_origin(const ScrollerCore::Box &geom, Mode mode) {
   return mode == Mode::Column ? geom.x : geom.y;
 }
@@ -97,11 +107,11 @@ size_t initial_width_index(PHLWINDOW window, bool &outIsFree) {
     } catch (...) {
     }
   }
-  if (frac > 0.0 && !g_widthFractions.empty()) {
+  if (frac > 0.0 && !s_widthFractions.empty()) {
     size_t bestIdx = 0;
-    double bestDiff = std::abs(g_widthFractions[0] - frac);
-    for (size_t i = 1; i < g_widthFractions.size(); ++i) {
-      double diff = std::abs(g_widthFractions[i] - frac);
+    double bestDiff = std::abs(s_widthFractions[0] - frac);
+    for (size_t i = 1; i < s_widthFractions.size(); ++i) {
+      double diff = std::abs(s_widthFractions[i] - frac);
       if (diff < bestDiff) {
         bestDiff = diff;
         bestIdx = i;
@@ -143,7 +153,7 @@ static void sync_window_target_geometry(PHLWINDOW window) {
 } // namespace
 
 // ============================================================================
-// Stack implementation (no Window methods here)
+// Stack implementation
 // ============================================================================
 
 Stack::Stack(PHLWINDOW cwindow, double maxw, double maxh, Mode mode)
@@ -552,7 +562,7 @@ void Stack::align_window(Direction direction, double /*gap*/) {
 }
 size_t Stack::get_width_index() const { return widthIndex; }
 void Stack::set_width_index(size_t index) {
-  if (index < g_widthFractions.size()) {
+  if (index < s_widthFractions.size()) {
     widthIndex = index;
     isFree = false;
   }
@@ -562,8 +572,8 @@ void Stack::set_free() { isFree = true; }
 double Stack::get_current_fraction() const {
   if (isFree)
     return 1.0;
-  if (widthIndex < g_widthFractions.size())
-    return g_widthFractions[widthIndex];
+  if (widthIndex < s_widthFractions.size())
+    return s_widthFractions[widthIndex];
   return 0.5;
 }
 void Stack::update_width(size_t index, double maxw, double maxh) {
@@ -587,16 +597,16 @@ void Stack::update_width_to_fraction(double fraction, double maxw,
     geom.w = fraction * maxw;
 }
 void Stack::cycle_width(int step, double maxw, double maxh) {
-  if (g_widthFractions.empty())
+  if (s_widthFractions.empty())
     return;
   if (isFree) {
     double currentFrac =
         (mode == Mode::Column) ? (geom.h / maxh) : (geom.w / maxw);
     currentFrac = std::clamp(currentFrac, 0.01, 1.0);
     size_t bestIdx = 0;
-    double bestDiff = std::abs(g_widthFractions[0] - currentFrac);
-    for (size_t i = 1; i < g_widthFractions.size(); ++i) {
-      double diff = std::abs(g_widthFractions[i] - currentFrac);
+    double bestDiff = std::abs(s_widthFractions[0] - currentFrac);
+    for (size_t i = 1; i < s_widthFractions.size(); ++i) {
+      double diff = std::abs(s_widthFractions[i] - currentFrac);
       if (diff < bestDiff) {
         bestDiff = diff;
         bestIdx = i;
@@ -607,8 +617,8 @@ void Stack::cycle_width(int step, double maxw, double maxh) {
   } else {
     int newIndex = static_cast<int>(widthIndex) + step;
     if (newIndex < 0)
-      newIndex = static_cast<int>(g_widthFractions.size()) - 1;
-    else if (newIndex >= static_cast<int>(g_widthFractions.size()))
+      newIndex = static_cast<int>(s_widthFractions.size()) - 1;
+    else if (newIndex >= static_cast<int>(s_widthFractions.size()))
       newIndex = 0;
     widthIndex = static_cast<size_t>(newIndex);
   }
@@ -763,8 +773,8 @@ void Stack::adjust_windows(ListNode<Window *> *win, const Vector2D &gap_x,
 std::string Stack::get_width_name() const {
   if (isFree)
     return "Free";
-  if (widthIndex < g_widthFractions.size()) {
-    double f = g_widthFractions[widthIndex];
+  if (widthIndex < s_widthFractions.size()) {
+    double f = s_widthFractions[widthIndex];
     if (std::abs(f - 1.0 / 3.0) < 0.01)
       return "OneThird";
     if (std::abs(f - 0.5) < 0.01)

@@ -1,6 +1,6 @@
 [repository]
 name = "hyprscroller"
-authors = ["86kkd"]
+authors = ["aahsnr-configs"]
 commit_pins = [
     ["59f9f2688ac508a0584d1462151195a6c4992f99", "08e4148465ad16fbe75c87891f8d955d25c6a2b0"],
     ["84ab8d11e8951a6551d1e1bf87796a8589da6d47", "7038ece24a53f98d6d4eef9759646261ee3fa07b"],
@@ -13,7 +13,7 @@ commit_pins = [
 
 [hyprscroller]
 description = "A plugin providing a scrolling layout, inspired by PaperWM"
-authors = ["86kkd"]
+authors = ["aahsnr-configs"]
 output = "Release/hyprscroller.so"
 build = [
     "make release",

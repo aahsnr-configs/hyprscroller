@@ -17,7 +17,9 @@
 
 namespace ScrollerModel {
 
-extern std::vector<double> g_widthFractions;
+// Global width fractions management
+void set_width_fractions(const std::vector<double> &fractions);
+const std::vector<double> &get_width_fractions();
 
 enum class WindowHeight {
   OneThird,
