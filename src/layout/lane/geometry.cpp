@@ -1,10 +1,6 @@
 /**
  * @file geometry.cpp
  * @brief Lane geometry, overview projection, and viewport relayout helpers.
- *
- * This file contains the geometry-heavy part of lane behavior: stack visibility
- * checks, anchor selection, overview projection, fullscreen/maximize layout,
- * and the final relayout pass that keeps the active stack visible.
  */
 #include "lane.h"
 
@@ -30,70 +26,53 @@ namespace {
 double stack_primary_origin(const Stack *stack, Mode mode) {
   return mode == Mode::Column ? stack->get_geom_y() : stack->get_geom_x();
 }
-
 double stack_primary_span(const Stack *stack, Mode mode) {
   return mode == Mode::Column ? stack->get_geom_h() : stack->get_geom_w();
 }
-
 double visible_primary_origin(const ScrollerCore::Box &visible_box, Mode mode) {
   return mode == Mode::Column ? visible_box.y : visible_box.x;
 }
-
 double visible_primary_span(const ScrollerCore::Box &visible_box, Mode mode) {
   return mode == Mode::Column ? visible_box.h : visible_box.w;
 }
-
 double visible_primary_end(const ScrollerCore::Box &visible_box, Mode mode) {
   return visible_primary_origin(visible_box, mode) +
          visible_primary_span(visible_box, mode);
 }
-
 void set_stack_primary_position(Stack *stack, Mode mode,
                                 const ScrollerCore::Box &visible_box,
                                 double primary_pos) {
   if (!stack)
     return;
-
   if (mode == Mode::Column)
     stack->set_geom_pos(visible_box.x, primary_pos);
   else
     stack->set_geom_pos(primary_pos, visible_box.y);
 }
-
 namespace viewport {
-// Return true when a stack would intersect the visible viewport at a projected
-// position.
 bool projected_stack_intersects_visible_box(
     const Stack *stack, const double projected_pos,
     const ScrollerCore::Box &visible_box, Mode mode) {
   if (!stack)
     return false;
-
   const auto projected_end = projected_pos + stack_primary_span(stack, mode);
   return ScrollerCore::Interval::intersects(
       projected_pos, projected_end, visible_primary_origin(visible_box, mode),
       visible_primary_end(visible_box, mode));
 }
-
 } // namespace viewport
-
 namespace logging {
-// Return the currently active compositor window pointer for readable logs.
 const void *active_window_ptr(Stack *stack) {
   if (!stack)
     return nullptr;
-
   const auto window = stack->get_active_window();
   return static_cast<const void *>(window ? window.get() : nullptr);
 }
-
-// Summarize the stack list for row-relayout debugging logs.
 std::string summarize_stacks(List<Stack *> &stacks, Mode mode) {
   std::ostringstream out;
   for (auto col = stacks.first(); col != nullptr; col = col->next()) {
     if (col != stacks.first())
       out << " | ";
-
     auto *data = col->data();
     out << active_window_ptr(data) << (mode == Mode::Column ? "@y=" : "@x=")
         << (data ? stack_primary_origin(data, mode) : 0.0)
@@ -103,9 +82,7 @@ std::string summarize_stacks(List<Stack *> &stacks, Mode mode) {
   return out.str();
 }
 } // namespace logging
-
 namespace overview {
-// Compute the scaled bounding box and offset required for overview mode.
 ScrollerCore::OverviewProjection
 compute_projection(List<Stack *> &stacks,
                    const ScrollerCore::Box &visible_box) {
@@ -116,13 +93,8 @@ compute_projection(List<Stack *> &stacks,
     auto x1 = x0 + stack->data()->get_geom_w();
     Vector2D height = stack->data()->get_height();
     items.push_back(ScrollerCore::OverviewRect{
-        .x0 = x0,
-        .x1 = x1,
-        .y0 = height.x,
-        .y1 = height.y,
-    });
+        .x0 = x0, .x1 = x1, .y0 = height.x, .y1 = height.y});
   }
-
   const auto projection =
       ScrollerCore::compute_overview_projection(items, visible_box);
   if (projection.width <= 0.0 || projection.height <= 0.0) {
@@ -133,8 +105,6 @@ compute_projection(List<Stack *> &stacks,
   }
   return projection;
 }
-
-// Apply overview projection to every stack in the lane.
 void apply_projection(List<Stack *> &stacks,
                       const ScrollerCore::OverviewProjection &projection,
                       double gap, const ScrollerCore::Box &visible_box) {
@@ -152,38 +122,30 @@ void apply_projection(List<Stack *> &stacks,
     column->scale(projection.min, start, projection.scale, gap);
   }
 }
-
-// Restore normal geometry after overview mode ends.
 void restore_projection(List<Stack *> &stacks, ListNode<Stack *> *active,
                         const ScrollerCore::Box &visible_box) {
   for (auto stack = stacks.first(); stack != nullptr; stack = stack->next())
     stack->data()->pop_geom();
-
   Stack *activeStack = active->data();
   const auto mode = activeStack->get_mode();
   const auto primaryOrigin = stack_primary_origin(activeStack, mode);
   const auto primarySpan = stack_primary_span(activeStack, mode);
-  if (primaryOrigin < visible_primary_origin(visible_box, mode)) {
+  if (primaryOrigin < visible_primary_origin(visible_box, mode))
     set_stack_primary_position(activeStack, mode, visible_box,
                                visible_primary_origin(visible_box, mode));
-  } else if (primaryOrigin + primarySpan >
-             visible_primary_end(visible_box, mode)) {
+  else if (primaryOrigin + primarySpan > visible_primary_end(visible_box, mode))
     set_stack_primary_position(activeStack, mode, visible_box,
                                visible_primary_end(visible_box, mode) -
                                    primarySpan);
-  }
 }
 } // namespace overview
-
 namespace recalc {
-// Initialize active-stack geometry when a stack is placed for the first time.
 double initialize_active_stack_geometry(ListNode<Stack *> *active,
                                         const ScrollerCore::Box &visible_box,
                                         double active_span, Mode mode,
                                         double gap) {
   if (active->data()->get_init())
     return stack_primary_origin(active->data(), mode);
-
   double active_pos;
   if (active->prev()) {
     Stack *prev = active->prev()->data();
@@ -195,139 +157,87 @@ double initialize_active_stack_geometry(ListNode<Stack *> *active,
     active_pos = visible_primary_origin(visible_box, mode) +
                  0.5 * (visible_primary_span(visible_box, mode) - active_span);
   }
-
   active->data()->set_init();
   return active_pos;
 }
 } // namespace recalc
 } // namespace
 
-// Compute the gap pair on the axis orthogonal to the stack's local window flow.
 Vector2D Lane::calculate_gap_x(const ListNode<Stack *> *stack) const {
-  // Gaps between stacks are now handled directly in adjust_stacks.
-  // No left/right padding should be added inside stacks.
+  // Gaps between stacks are handled directly in adjust_stacks.
   return Vector2D(0.0, 0.0);
 }
 
-// Center the active stack inside the lane according to its width mode.
 void Lane::center_active_stack() {
   if (!active)
     return;
-
   Stack *stack = active->data();
   if (stack->maximized())
     return;
-
+  double fraction = stack->get_current_fraction();
   if (mode == Mode::Column) {
-    switch (stack->get_width()) {
-    case StackWidth::OneThird:
-      stack->set_geom_pos(max.x, max.y + max.h / 3.0);
-      break;
-    case StackWidth::OneHalf:
-      stack->set_geom_pos(max.x, max.y + max.h / 4.0);
-      break;
-    case StackWidth::TwoThirds:
-      stack->set_geom_pos(max.x, max.y + max.h / 6.0);
-      break;
-    case StackWidth::Free:
-      stack->set_geom_pos(
-          max.x, ScrollerCore::center_span(max.y, max.h, stack->get_geom_h()));
-      break;
-    default:
-      break;
-    }
-    return;
-  }
-
-  switch (stack->get_width()) {
-  case StackWidth::OneThird:
-    stack->set_geom_pos(max.x + max.w / 3.0, max.y);
-    break;
-  case StackWidth::OneHalf:
-    stack->set_geom_pos(max.x + max.w / 4.0, max.y);
-    break;
-  case StackWidth::TwoThirds:
-    stack->set_geom_pos(max.x + max.w / 6.0, max.y);
-    break;
-  case StackWidth::Free:
-    stack->set_geom_pos(
-        ScrollerCore::center_span(max.x, max.w, stack->get_geom_w()), max.y);
-    break;
-  default:
-    break;
+    double offset = max.h * (1.0 - fraction) / 2.0;
+    stack->set_geom_pos(max.x, max.y + offset);
+  } else {
+    double offset = max.w * (1.0 - fraction) / 2.0;
+    stack->set_geom_pos(max.x + offset, max.y);
   }
 }
 
-// Predict the initial size for a new window inserted into this lane.
 Vector2D Lane::predict_window_size() const {
   return ScrollerCore::predict_window_size(mode, max);
 }
 
-// Refresh lane bounds from the monitor workarea and gap configuration.
 void Lane::update_sizes(PHLMONITOR monitor) {
   if (!monitor)
     return;
-
   const auto bounds = CanvasLayoutInternal::compute_canvas_bounds(monitor);
   full = bounds.full;
   max = bounds.max;
   gap = bounds.gap;
 }
 
-// Force the active stack into fullscreen geometry used for special fullscreen
-// paths.
 void Lane::set_fullscreen_active_window() {
   if (!active)
     return;
-
   active->data()->set_fullscreen(full);
   active->data()->recalculate_stack_geometry(calculate_gap_x(active), gap);
 }
 
-// Toggle scroller-managed fullscreen on the active stack and relayout.
 void Lane::toggle_fullscreen_active_window() {
   if (!active)
     return;
-
   Stack *stack = active->data();
   (void)stack->toggle_fullscreen(max);
   recalculate_lane_geometry();
 }
 
-// Toggle maximized width/height behavior for the active stack.
 void Lane::toggle_maximize_active_stack() {
   if (!active)
     return;
-
   Stack *stack = active->data();
   stack->toggle_maximized(max.w, max.h);
   reorder = Reorder::Auto;
   recalculate_lane_geometry();
 }
 
-// Toggle overview mode for the whole lane.
 void Lane::toggle_overview() {
   if (stacks.empty() || !active)
     return;
-
   overview = !overview;
   if (overview) {
     const auto projection = overview::compute_projection(stacks, max);
     overview::apply_projection(stacks, projection, gap, max);
     adjust_stacks(stacks.first());
-    return;
+  } else {
+    overview::restore_projection(stacks, active, max);
+    adjust_stacks(active);
   }
-
-  overview::restore_projection(stacks, active, max);
-  adjust_stacks(active);
 }
 
-// Main geometry pass for a lane: keep the active stack visible and reposition
-// neighbors around it.
 void Lane::recalculate_lane_geometry() {
   if (active == nullptr)
     return;
-
   if (const auto activeWindow = active->data()->get_active_window();
       activeWindow && activeWindow->isFullscreen()) {
     active->data()->recalculate_stack_geometry(calculate_gap_x(active), gap);
@@ -343,11 +253,10 @@ void Lane::recalculate_lane_geometry() {
           ->getConfigValuePtr("general:col.active_border")
           ->data.get();
   if (const auto activeWindow = active->data()->get_active_window()) {
-    if (active->data()->get_width() == StackWidth::Free) {
+    if (active->data()->is_free())
       activeWindow->m_cRealBorderColor = *FREECOLUMN;
-    } else {
+    else
       activeWindow->m_cRealBorderColor = *ACTIVECOL;
-    }
   }
   g_pEventManager->postEvent(
       SHyprIPCEvent{"scroller", active->data()->get_width_name() + "," +
@@ -355,7 +264,7 @@ void Lane::recalculate_lane_geometry() {
 #endif
   if (stacks.size() == 1 && active->data()->size() == 1) {
     auto *stack = active->data();
-    stack->update_width(stack->get_width(), max.w, max.h);
+    stack->update_width(stack->get_width_index(), max.w, max.h);
     stack->set_geom_pos(max.x, max.y);
     stack->set_geom_w(max.w);
     stack->set_geom_h(max.h);
@@ -366,7 +275,6 @@ void Lane::recalculate_lane_geometry() {
                   logging::summarize_stacks(stacks, mode));
     return;
   }
-
   auto activeSpan = stack_primary_span(active->data(), mode);
   auto activePos = recalc::initialize_active_stack_geometry(
       active, max, activeSpan, mode, gap);
@@ -407,7 +315,6 @@ void Lane::recalculate_lane_geometry() {
         logging::summarize_stacks(stacks, mode));
     return;
   }
-
   const Box active_window(max.x, max.y, max.w, max.h);
   const auto *prev = active->prev() ? active->prev()->data() : nullptr;
   const auto *next = active->next() ? active->next()->data() : nullptr;
@@ -441,7 +348,6 @@ void Lane::recalculate_lane_geometry() {
 }
 
 void Lane::adjust_stacks(ListNode<Stack *> *stack) {
-  // Adjust stacks to the left (previous) adding a gap between them.
   for (auto col = stack->prev(), prev = stack; col != nullptr;
        prev = col, col = col->prev()) {
     set_stack_primary_position(col->data(), mode, max,
@@ -449,7 +355,6 @@ void Lane::adjust_stacks(ListNode<Stack *> *stack) {
                                    stack_primary_span(col->data(), mode) - gap);
     col->data()->set_init();
   }
-  // Adjust stacks to the right (next) adding a gap between them.
   for (auto col = stack->next(), prev = stack; col != nullptr;
        prev = col, col = col->next()) {
     set_stack_primary_position(col->data(), mode, max,
@@ -458,11 +363,7 @@ void Lane::adjust_stacks(ListNode<Stack *> *stack) {
                                    gap);
     col->data()->set_init();
   }
-
   stack->data()->set_init();
-
-  // Recalculate stack geometry with zero cross-gap (gaps are now handled by
-  // lane positioning).
   for (auto col = stacks.first(); col != nullptr; col = col->next()) {
     col->data()->recalculate_stack_geometry(Vector2D(0.0, 0.0), gap);
   }

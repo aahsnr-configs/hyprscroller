@@ -1,0 +1,88 @@
+cmake -B ./Release -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=
+-- The CXX compiler identification is GNU 15.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/sbin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/sbin/pkg-config (found version "2.5.1")
+-- Checking for modules 'hyprland;pixman-1;libdrm'
+--   Found hyprland, version 0.54.3
+--   Found pixman-1, version 0.46.4
+--   Found libdrm, version 2.4.131
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE
+-- Configuring done (0.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/ahsan/Git/misc/hyprscroller/Release
+cmake --build ./Release -j
+make[1]: Entering directory '/home/ahsan/Git/misc/hyprscroller/Release'
+[ 18%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/overview/logic.cpp.o
+[ 21%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/layout/canvas/dispatch_logic.cpp.o
+[ 27%] Building CXX object CMakeFiles/hyprscroller.dir/src/core/layout_profile.cpp.o
+[ 27%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/tests/logic_tests.cpp.o
+[ 29%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/layout/canvas/route_logic.cpp.o
+[ 32%] Building CXX object CMakeFiles/hyprscroller.dir/src/core/core.cpp.o
+[ 18%] Building CXX object CMakeFiles/hyprscroller.dir/src/core/direction.cpp.o
+[ 35%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/core/direction.cpp.o
+[ 18%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/core/layout_math.cpp.o
+[ 18%] Building CXX object CMakeFiles/hyprscroller.dir/src/dispatchers.cpp.o
+[ 18%] Building CXX object CMakeFiles/hyprscroller.dir/src/main.cpp.o
+[ 35%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/overview/orientation_math.cpp.o
+[ 37%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/logic.cpp.o
+[ 18%] Building CXX object CMakeFiles/hyprscroller_logic_tests.dir/src/core/layout_profile.cpp.o
+[ 40%] Building CXX object CMakeFiles/hyprscroller.dir/src/core/layout_math.cpp.o
+[ 43%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/monitor_space.cpp.o
+[ 45%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/orientation_math.cpp.o
+[ 51%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/model.cpp.o
+[ 51%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/session.cpp.o
+[ 54%] Building CXX object CMakeFiles/hyprscroller.dir/src/model/window.cpp.o
+[ 56%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/render.cpp.o
+[ 59%] Building CXX object CMakeFiles/hyprscroller.dir/src/overview/pass_element.cpp.o
+[ 62%] Building CXX object CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o
+[ 64%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/core.cpp.o
+[ 67%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/overview.cpp.o
+[ 70%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/route.cpp.o
+[ 75%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/dispatch_logic.cpp.o
+[ 75%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/lane/actions.cpp.o
+[ 78%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/dispatch.cpp.o
+[ 81%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/focus.cpp.o
+[ 83%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/route_logic.cpp.o
+[ 86%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/lane/core.cpp.o
+[ 89%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/lane/geometry.cpp.o
+[ 91%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/workspace.cpp.o
+[ 94%] Building CXX object CMakeFiles/hyprscroller.dir/src/layout/canvas/commands.cpp.o
+[ 97%] Linking CXX executable hyprscroller_logic_tests
+[ 97%] Built target hyprscroller_logic_tests
+[100%] Linking CXX shared library hyprscroller.so
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::ptr() const':
+stack.cpp:(.text+0x150): multiple definition of `ScrollerModel::Window::ptr() const'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0xb0): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::get_geom_h() const':
+stack.cpp:(.text+0x180): multiple definition of `ScrollerModel::Window::get_geom_h() const'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0xe0): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::get_geom_y() const':
+stack.cpp:(.text+0x190): multiple definition of `ScrollerModel::Window::get_geom_y() const'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0xf0): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::set_geom_h(double)':
+stack.cpp:(.text+0x1a0): multiple definition of `ScrollerModel::Window::set_geom_h(double)'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x100): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::set_geom_y(double)':
+stack.cpp:(.text+0x1b0): multiple definition of `ScrollerModel::Window::set_geom_y(double)'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x110): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::push_geom()':
+stack.cpp:(.text+0x1c0): multiple definition of `ScrollerModel::Window::push_geom()'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x120): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::pop_geom()':
+stack.cpp:(.text+0x1d0): multiple definition of `ScrollerModel::Window::pop_geom()'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x130): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::get_height() const':
+stack.cpp:(.text+0x1e0): multiple definition of `ScrollerModel::Window::get_height() const'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x140): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::update_height(ScrollerModel::WindowHeight, double)':
+stack.cpp:(.text+0x1f0): multiple definition of `ScrollerModel::Window::update_height(ScrollerModel::WindowHeight, double)'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x150): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::set_height_free()':
+stack.cpp:(.text+0x260): multiple definition of `ScrollerModel::Window::set_height_free()'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x1c0): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::Window(Hyprutils::Memory::CSharedPointer<Desktop::View::CWindow>, double)':
+stack.cpp:(.text+0x1d30): multiple definition of `ScrollerModel::Window::Window(Hyprutils::Memory::CSharedPointer<Desktop::View::CWindow>, double)'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x0): first defined here
+/usr/bin/ld: CMakeFiles/hyprscroller.dir/src/model/stack.cpp.o: in function `ScrollerModel::Window::Window(Hyprutils::Memory::CSharedPointer<Desktop::View::CWindow>, double)':
+stack.cpp:(.text+0x1d30): multiple definition of `ScrollerModel::Window::Window(Hyprutils::Memory::CSharedPointer<Desktop::View::CWindow>, double)'; CMakeFiles/hyprscroller.dir/src/model/window.cpp.o:window.cpp:(.text+0x0): first defined here
+collect2: error: ld returned 1 exit status
+make[3]: *** [CMakeFiles/hyprscroller.dir/build.make:518: hyprscroller.so] Error 1
+make[2]: *** [CMakeFiles/Makefile2:1014: CMakeFiles/hyprscroller.dir/all] Error 2
+make[1]: *** [Makefile:101: all] Error 2
+make[1]: Leaving directory '/home/ahsan/Git/misc/hyprscroller/Release'
+make: *** [Makefile:13: release] Error 2
