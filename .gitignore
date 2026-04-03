@@ -1,0 +1,11 @@
+Debug/
+Release/
+hyprscroller.so
+.cache/
+compile_commands.json
+build/
+.nvmrc
+hypr.conf
+Hyprspace
+hyprview
+hyprland-plugins
