@@ -2,41 +2,23 @@
 
 [Hyprscroller](https://github.com/86kkd/hyprscroller) is a
 [Hyprland](https://hyprland.org) layout plugin that creates a window layout
-similar to [PaperWM](https://github.com/paperwm/PaperWM). I initialy
-learned how to write a *Hyprland* plugin from [hyprslidr](https://gitlab.com/magus/hyprslidr),
-which is a similar idea.
-
-This repository is an actively maintained fork of the original
-[`dawsers/hyprscroller`](https://github.com/dawsers/hyprscroller), which is now
-archived.
+similar to [PaperWM](https://github.com/paperwm/PaperWM).
 
 ![Intro](./videos/hyprscroller.gif)
 
-The plugin is quite feature complete and supports gaps, borders, special
-workspace, scroller-managed fullscreen expansion, overview, marks and
-installation through `hyprpm`.
+The plugin is quite feature complete and supports gaps, borders, special workspace, scroller-managed fullscreen expansion, overview, marks and installation through `hyprpm`.
 
-This fork is maintained against the Hyprland versions I actually run and test.
-The focus is practical compatibility with packaged Hyprland releases first,
-instead of chasing trunk continuously.
-
+This plugin is maintained against the Hyprland versions I actually run and test. The focus is practical compatibility with packaged Hyprland releases first, instead of chasing trunk continuously.
 
 ## Requirements
 
-*hyprscroller* supports the version of *Hyprland* I use, which should be the
-same as the Arch Linux `hyprland` package. You can try your luck with the
-latest `git` changes, but I will be slower to keep up with those, as there are
-too many API changes going on upstream.
-
-Aside from those versions, even though the feature set will be frozen for
-them, *hyprscroller* also supports v0.35, v0.38.1, v0.39.1 and v0.40.0.
-
+_hyprscroller_ supports the version of _Hyprland_ I use, which should be the same as the Arch Linux `hyprland` package. You can try your luck with the latest `git` changes, but I will be slower to keep up with those, as there are too many API changes going on upstream.
 
 ## Building and installing
 
 With Hyprland installed it should be as simple as running
 
-``` sh
+```sh
 # builds a shared object hyprscroller.so
 make all
 # installs the shared library in ~/.config/hypr/plugins
@@ -46,7 +28,7 @@ make install
 If you are hacking on the plugin, you can also run the pure logic tests without
 starting Hyprland:
 
-``` sh
+```sh
 cmake -S . -B Debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build ./Debug -j
 ctest --test-dir ./Debug --output-on-failure
@@ -57,7 +39,7 @@ the manual [smoke test checklist](./docs/smoke-test-checklist.md) as well.
 
 A more automated option is to use `hyprpm`.
 
-``` sh
+```sh
 hyprpm add https://github.com/86kkd/hyprscroller
 # verify it installed correctly
 hyprpm list
@@ -66,26 +48,25 @@ hyprpm list
 You can enable or disable it via `hyprpm enable hyprscroller` and
 `hyprpm disable hyprscroller`.
 
-
 ## Configuration
 
 If you are not using `hyprpm`, to make Hyprland load the plugin, add this to
 your configuration.
 
-``` conf
+```conf
 plugin = ~/.config/hypr/plugins/hyprscroller.so
 ```
 
 Instead, if you use `hyprpm`, it should be as simple as adding this to
 your `~/.config/hypr/hyprland.conf` :
 
-``` conf
+```conf
 exec-once = hyprpm reload -n
 ```
 
 To turn on the layout, use
 
-``` conf
+```conf
 general {
     ...
 
@@ -95,62 +76,59 @@ general {
 }
 ```
 
-
 ## Dispatchers
 
 The plugin adds the following dispatchers:
 
-| Dispatcher                | Description                                                                                                                 |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| `scroller:movefocus`      | A replacement for `movefocus`, takes a direction as argument.                                                               |
-| `scroller:movewindow`     | A replacement for `movewindow`, takes a direction as argument.                                                              |
-| `scroller:setmode`        | Set mode: `r/row` (default), `c/col/column`. Sets the working mode. Affects most dispatchers and new window creation.       |
-| `scroller:cyclesize`      | Resize the focused column width (*row* mode), or the active window height (*column* mode).                                  |
-| `scroller:alignwindow`    | Align window on the screen, `l/left`, `c/center`, `r/right` (*row* mode), `c/center`, `u/up`, `d/down` (*col* mode)         |
-| `scroller:admitwindow`    | Push the current window below the active one of the column to its left.                                                     |
-| `scroller:expelwindow`    | Pop the current window out of its column and place it on a new column to the right.                                         |
-| `scroller:fitsize`        | Resize columns (*row* mode) or windows (*col* mode) so they fit on the screen: `active`, `visible`, `all`, `toend`, `tobeg` |
-| `scroller:togglefullscreen` | Toggle scroller fullscreen for the active window. In *row* mode it expands horizontally to the monitor width; in *column* mode it expands vertically to the monitor height. |
-| `scroller:toggleoverview` | Toggle an overview of the workspace where all the windows are temporarily scaled to fit the monitor                         |
-| `scroller:marksadd`       | Add a named mark. Argument is the name of the mark                                                                          |
-| `scroller:marksdelete`    | Delete a named mark. Argument is the name of the mark                                                                       |
-| `scroller:marksvisit`     | Visit a named mark. Argument is the name of the mark                                                                        |
-| `scroller:marksreset`     | Delete all marks                                                                                                            |
+| Dispatcher                  | Description                                                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scroller:movefocus`        | A replacement for `movefocus`, takes a direction as argument.                                                                                                               |
+| `scroller:movewindow`       | A replacement for `movewindow`, takes a direction as argument.                                                                                                              |
+| `scroller:setmode`          | Set mode: `r/row` (default), `c/col/column`. Sets the working mode. Affects most dispatchers and new window creation.                                                       |
+| `scroller:cyclesize`        | Resize the focused column width (_row_ mode), or the active window height (_column_ mode).                                                                                  |
+| `scroller:alignwindow`      | Align window on the screen, `l/left`, `c/center`, `r/right` (_row_ mode), `c/center`, `u/up`, `d/down` (_col_ mode)                                                         |
+| `scroller:admitwindow`      | Push the current window below the active one of the column to its left.                                                                                                     |
+| `scroller:expelwindow`      | Pop the current window out of its column and place it on a new column to the right.                                                                                         |
+| `scroller:fitsize`          | Resize columns (_row_ mode) or windows (_col_ mode) so they fit on the screen: `active`, `visible`, `all`, `toend`, `tobeg`                                                 |
+| `scroller:togglefullscreen` | Toggle scroller fullscreen for the active window. In _row_ mode it expands horizontally to the monitor width; in _column_ mode it expands vertically to the monitor height. |
+| `scroller:toggleoverview`   | Toggle an overview of the workspace where all the windows are temporarily scaled to fit the monitor                                                                         |
+| `scroller:marksadd`         | Add a named mark. Argument is the name of the mark                                                                                                                          |
+| `scroller:marksdelete`      | Delete a named mark. Argument is the name of the mark                                                                                                                       |
+| `scroller:marksvisit`       | Visit a named mark. Argument is the name of the mark                                                                                                                        |
+| `scroller:marksreset`       | Delete all marks                                                                                                                                                            |
 
 ## Fullscreen behavior
 
 `scroller:togglefullscreen` is not the same as Hyprland's native
 `fullscreen/fullscreenstate` dispatchers.
 
-- In *row* mode, it expands the active column horizontally so the focused
+- In _row_ mode, it expands the active column horizontally so the focused
   window becomes as wide as a single-window workspace.
-- In *column* mode, it expands the active window vertically so it becomes as
+- In _column_ mode, it expands the active window vertically so it becomes as
   tall as a single-window workspace.
 - It stays inside scroller's layout model, so focus movement and scrolling
   behavior continue to work normally.
 
-
 ## Modes
 
-*Hyprscroller* works in one of two modes that can be changed at any moment.
+_Hyprscroller_ works in one of two modes that can be changed at any moment.
 
-1. *row* mode: it is the default. It creates new windows in a new column.
+1. _row_ mode: it is the default. It creates new windows in a new column.
    `cyclesize` affects the width of the active column. `alignwindow` aligns
    the active column according to the argument received. `fitsize` fits the
    selected columns to the width of the monitor.
 
-2. *column* mode: It creates new windows in the current column, right below the
+2. _column_ mode: It creates new windows in the current column, right below the
    active window. `cyclesize` affects the height of the active window.
    `alignwindow` aligns the active window within the column, according to the
    argument received. `fitsize` fits the selected windows in the column to the
    height of the monitor.
 
-
 ## Window/Column Focus and Movement
 
-If you want to use *Hyprscroller* you will need to map your key bindings from
+If you want to use _Hyprscroller_ you will need to map your key bindings from
 the default `movefocus`/`movewindow` to
-`scroller:movefocus`/`scroller:movewindow`. The reason is *Hyprland* doesn't
+`scroller:movefocus`/`scroller:movewindow`. The reason is _Hyprland_ doesn't
 have the concept (yet) of a workspace that spans more than the space of a
 monitor, and when focusing directionally, it doesn't look for windows that are
 "outside" of that region. If this changes in the future, these two dispatches
@@ -161,25 +139,23 @@ may become obsolete.
 `begin` or `beginning`, `e` or `end`. So you can focus or move windows/columns
 in a direction or to the beginning or end or the row.
 
-
 ## Resizing
 
 `cyclesize` accepts an argument which is either `+1`/`1`/`next`, or
 `-1`/`prev`/`previous`. It cycles forward or backward through three column
-widths (in *row* mode): one third, one half or two thirds of the available
-width of the monitor. In *column* mode, the fractions are relative to the
+widths (in _row_ mode): one third, one half or two thirds of the available
+width of the monitor. In _column_ mode, the fractions are relative to the
 height of the monitor, and are: one third, one half, two thirds or one.
 However, using `resizewindow`, you can modify the width or height of
 any window freely.
-
 
 ## Aligning
 
 Columns are generally aligned in automatic mode, always making the active one
 visible, and trying to make at least the previously focused one visible too if
 it fits the viewport, if not, the one adjacent on the other side. However, you
-can always align any column to the *center*, *left* or *right* of the monitor
-(in *row* mode), or *up* (top), *down* (bottom) or to the *center* in *column*
+can always align any column to the _center_, _left_ or _right_ of the monitor
+(in _row_ mode), or _up_ (top), _down_ (bottom) or to the _center_ in _column_
 mode. For example center a column for easier reading, regardless of what happens to
 the other columns. As soon as you change focus or move a column, the alignment
 is lost.
@@ -187,12 +163,11 @@ is lost.
 `alignwindow` takes a parameter: `l` or `left`, `r` or `right`, `c` or
 `center` or `centre`, `u` or `up` and `d` or `down`.
 
-To use *right* or *left* you need to be in *row* mode, and to use *up* or
-*down* in *column* mode. *center* behaves differently depending on the mode.
-In *row* mode it aligns the active column to the center of the monitor. In
-*column* mode, it aligns the active window within its column, to a centered
+To use _right_ or _left_ you need to be in _row_ mode, and to use _up_ or
+_down_ in _column_ mode. _center_ behaves differently depending on the mode.
+In _row_ mode it aligns the active column to the center of the monitor. In
+_column_ mode, it aligns the active window within its column, to a centered
 position.
-
 
 ## Admit/Expel
 
@@ -203,7 +178,6 @@ active window in that column.
 To expel any window from its current column and position it in a new column to
 its right, use `expelwindow`.
 
-
 ## Fitting the Screen
 
 When you have a ultra-wide monitor, one in a vertical position, or the default
@@ -212,7 +186,7 @@ resizing, but it is sometimes slow and tricky.
 
 `scroller:fitsize` works in two different ways, depending on the active mode.
 
-It allows you to re-fit the columns (*row* mode) or windows (*column* mode) you
+It allows you to re-fit the columns (_row_ mode) or windows (_column_ mode) you
 want to the screen extents. It accepts an argument related to the
 columns/windows it will try to fit. The new width/height of each column/window
 will be proportional to its previous width or height, relative to the other
@@ -228,24 +202,22 @@ columns or windows affected.
 5. `tobeg` or `tobeginning`: All the columns/windows from the focused one to
    the beginning of the row/column will now fit the screen.
 
-
 ## Overview
 
 `scroller:toggleoverview` toggles a bird's eye view of the current workspace where
 all the windows are scaled to fit the current monitor. You can still interact
 with them normally (change focus, move windows, type in them etc.). When
 toggling back to normal mode, the original window sizes will be restored...so
-it is not wise to use *toggleoverview* for window resizing or creating new windows.
+it is not wise to use _toggleoverview_ for window resizing or creating new windows.
 Use it as a way to see where things are and move the active focus, or a window,
 anything beyond that will probably find bugs or **cause compositor crashes**.
 
-
 ## Marks
 
-You can use *marks* to navigate to frequently used windows, regardless of
+You can use _marks_ to navigate to frequently used windows, regardless of
 which workspace they are in (it even works for the special workspace windows).
 
-`scroller:marksadd` adds a named mark. Use a *submap* to create bindings for
+`scroller:marksadd` adds a named mark. Use a _submap_ to create bindings for
 several named marks you may want to use. See the configuration example for
 directions.
 
@@ -262,22 +234,21 @@ You can use any string name for a mark, for example in scripts. But they are
 also very convenient to use with regular key bindings by simply using a letter
 as the name. Again, see the example configuration.
 
-
 ## Options
 
-*hyprscroller* currently accepts the following options:
+_hyprscroller_ currently accepts the following options:
 
-1. `column_default_width`: determines the width of new columns in *row* mode.
-Possible arguments are: `onehalf` (default), `onethird`, `twothirds`,
-`maximized`, `floating` (uses the default width set by the application).
+1. `column_default_width`: determines the width of new columns in _row_ mode.
+   Possible arguments are: `onehalf` (default), `onethird`, `twothirds`,
+   `maximized`, `floating` (uses the default width set by the application).
 
-2. `focus_wrap`: determines whether focus will *wrap* when at the first or
-last window of a row/column. Possible arguments are: `true`|`1` (default), or
-`false`|`0`.
+2. `focus_wrap`: determines whether focus will _wrap_ when at the first or
+   last window of a row/column. Possible arguments are: `true`|`1` (default), or
+   `false`|`0`.
 
 For example:
 
-``` conf
+```conf
 plugin {
     scroller {
         column_default_width = onehalf
@@ -286,12 +257,11 @@ plugin {
 }
 ```
 
-
 ## Key bindings
 
 As an example, you could set some key bindings in your `hyprland.conf` like this:
 
-``` conf
+```conf
 # Move focus with mainMod + arrow keys
 bind = $mainMod, left, scroller:movefocus, l
 bind = $mainMod, right, scroller:movefocus, r
