@@ -83,35 +83,41 @@ double parse_width_token(const std::string &token) {
   return std::clamp(val, 0.01, 1.0);
 }
 
-bool parse_width_presets(const std::string &configValue,
-                         std::vector<double> &outFractions) {
-  outFractions.clear();
-  std::string str = configValue;
+// Parse the config value directly using the same method as original code
+void load_width_presets() {
+  static auto const *column_default_width =
+      (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
+          PHANDLE, "plugin:scroller:column_default_width")
+          ->getDataStaticPtr();
+  const std::string presetStr = *column_default_width;
+
+  std::vector<double> widthFractions;
+  std::string str = presetStr;
   str.erase(std::remove_if(str.begin(), str.end(), ::isspace), str.end());
   if (str.empty()) {
-    outFractions = {1.0 / 3.0, 0.5, 2.0 / 3.0};
-    return true;
-  }
-
-  std::vector<std::string> tokens;
-  size_t start = 0, end;
-  while ((end = str.find(',', start)) != std::string::npos) {
-    tokens.push_back(str.substr(start, end - start));
-    start = end + 1;
-  }
-  tokens.push_back(str.substr(start));
-
-  bool hasFraction = false;
-  for (const auto &token : tokens) {
-    double frac = parse_width_token(token);
-    if (frac > 0.0) {
-      outFractions.push_back(frac);
-      hasFraction = true;
+    widthFractions = {1.0 / 3.0, 0.5, 2.0 / 3.0};
+  } else {
+    std::vector<std::string> tokens;
+    size_t start = 0, end;
+    while ((end = str.find(',', start)) != std::string::npos) {
+      tokens.push_back(str.substr(start, end - start));
+      start = end + 1;
     }
+    tokens.push_back(str.substr(start));
+
+    for (const auto &token : tokens) {
+      double frac = parse_width_token(token);
+      if (frac > 0.0) {
+        widthFractions.push_back(frac);
+      }
+    }
+    if (widthFractions.empty())
+      widthFractions = {0.5};
   }
-  if (outFractions.empty())
-    outFractions = {0.5};
-  return hasFraction;
+  ScrollerModel::set_width_fractions(widthFractions);
+  spdlog::info("Loaded width presets: {} fractions", widthFractions.size());
+  for (size_t i = 0; i < widthFractions.size(); ++i)
+    spdlog::debug("  [{}] = {}", i, widthFractions[i]);
 }
 } // namespace
 
@@ -133,19 +139,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:scroller:focus_wrap",
                               Hyprlang::INT{0});
 
-  auto *configValue = HyprlandAPI::getConfigValue(
-      PHANDLE, "plugin:scroller:column_default_width");
-  std::vector<double> widthFractions;
-  if (configValue) {
-    std::string presetStr = std::any_cast<std::string>(configValue->getValue());
-    parse_width_presets(presetStr, widthFractions);
-    spdlog::info("Parsed width presets: {} fractions", widthFractions.size());
-    for (size_t i = 0; i < widthFractions.size(); ++i)
-      spdlog::debug("  [{}] = {}", i, widthFractions[i]);
-  } else {
-    widthFractions = {1.0 / 3.0, 0.5, 2.0 / 3.0};
-  }
-  ScrollerModel::set_width_fractions(widthFractions);
+  // Load width presets after config values are registered
+  load_width_presets();
 
   dispatchers::addDispatchers();
 
