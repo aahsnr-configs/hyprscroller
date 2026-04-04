@@ -22,6 +22,9 @@
 #include "../../core/layout_profile.h"
 #include "../canvas/internal.h"
 
+// Forward declaration of the getter from main.cpp
+extern const std::string &getFirstWindowPlacement();
+
 namespace {
 double stack_primary_origin(const Stack *stack, Mode mode) {
   return mode == Mode::Column ? stack->get_geom_y() : stack->get_geom_x();
@@ -164,7 +167,6 @@ double initialize_active_stack_geometry(ListNode<Stack *> *active,
 } // namespace
 
 Vector2D Lane::calculate_gap_x(const ListNode<Stack *> *stack) const {
-  // Gaps between stacks are handled directly in adjust_stacks.
   return Vector2D(0.0, 0.0);
 }
 
@@ -262,12 +264,71 @@ void Lane::recalculate_lane_geometry() {
       SHyprIPCEvent{"scroller", active->data()->get_width_name() + "," +
                                     active->data()->get_height_name()});
 #endif
+  // Single‑window lane special handling
   if (stacks.size() == 1 && active->data()->size() == 1) {
     auto *stack = active->data();
     stack->update_width(stack->get_width_index(), max.w, max.h);
-    stack->set_geom_pos(max.x, max.y);
-    stack->set_geom_w(max.w);
-    stack->set_geom_h(max.h);
+    // Apply first window placement if the stack is not yet initialized
+    if (!stack->get_init()) {
+      const std::string placement = getFirstWindowPlacement();
+      if (mode == Mode::Row) {
+        double stackWidth = stack->get_geom_w();
+        double xLeft = max.x;
+        double xCenter = max.x + (max.w - stackWidth) / 2.0;
+        double xRight = max.x + max.w - stackWidth;
+        double newX = xLeft; // fallback
+        if (placement == "left" || placement == "auto") {
+          newX = xLeft;
+        } else if (placement == "center") {
+          newX = xCenter;
+        } else if (placement == "right") {
+          newX = xRight;
+        } else {
+          spdlog::debug("recalculate_lane_geometry: unknown placement '{}' for "
+                        "row mode, using left",
+                        placement);
+          newX = xLeft;
+        }
+        // Clamp to avoid floating-point jitter
+        if (std::abs(newX - xLeft) < 0.5)
+          newX = xLeft;
+        else if (std::abs(newX - xCenter) < 0.5)
+          newX = xCenter;
+        else if (std::abs(newX - xRight) < 0.5)
+          newX = xRight;
+        stack->set_geom_pos(newX, max.y);
+        spdlog::debug("First window placement (row): {} -> newX={}", placement,
+                      newX);
+      } else { // Column mode
+        double stackHeight = stack->get_geom_h();
+        double yTop = max.y;
+        double yCenter = max.y + (max.h - stackHeight) / 2.0;
+        double yBottom = max.y + max.h - stackHeight;
+        double newY = yTop;
+        if (placement == "top" || placement == "auto") {
+          newY = yTop;
+        } else if (placement == "center") {
+          newY = yCenter;
+        } else if (placement == "bottom") {
+          newY = yBottom;
+        } else {
+          spdlog::debug("recalculate_lane_geometry: unknown placement '{}' for "
+                        "column mode, using top",
+                        placement);
+          newY = yTop;
+        }
+        if (std::abs(newY - yTop) < 0.5)
+          newY = yTop;
+        else if (std::abs(newY - yCenter) < 0.5)
+          newY = yCenter;
+        else if (std::abs(newY - yBottom) < 0.5)
+          newY = yBottom;
+        stack->set_geom_pos(max.x, newY);
+        spdlog::debug("First window placement (column): {} -> newY={}",
+                      placement, newY);
+      }
+      stack->set_init();
+    }
     stack->fit_size(FitSize::All, calculate_gap_x(active), gap);
     stack->recalculate_stack_geometry(calculate_gap_x(active), gap);
     spdlog::debug("lane_recalc_single: active_window={} stacks={}",
@@ -275,6 +336,7 @@ void Lane::recalculate_lane_geometry() {
                   logging::summarize_stacks(stacks, mode));
     return;
   }
+
   auto activeSpan = stack_primary_span(active->data(), mode);
   auto activePos = recalc::initialize_active_stack_geometry(
       active, max, activeSpan, mode, gap);

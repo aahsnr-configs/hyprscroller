@@ -18,10 +18,14 @@
 #include "dispatchers.h"
 #include "hyprlang.hpp"
 #include "layout/canvas/layout.h"
-#include "model/stack.h" // for set_width_fractions
+#include "model/stack.h"
 #include "overview/render.h"
 
 HANDLE PHANDLE = nullptr;
+
+// Global width fractions (managed by stack.cpp)
+// Global placement string
+static std::string g_firstWindowPlacement;
 
 namespace {
 std::string log_file_path() {
@@ -83,7 +87,6 @@ double parse_width_token(const std::string &token) {
   return std::clamp(val, 0.01, 1.0);
 }
 
-// Parse the config value directly using the same method as original code
 void load_width_presets() {
   static auto const *column_default_width =
       (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
@@ -119,7 +122,34 @@ void load_width_presets() {
   for (size_t i = 0; i < widthFractions.size(); ++i)
     spdlog::debug("  [{}] = {}", i, widthFractions[i]);
 }
+
+void load_first_window_placement() {
+  static auto const *placementValue =
+      (Hyprlang::STRING const *)HyprlandAPI::getConfigValue(
+          PHANDLE, "plugin:scroller:first_window_placement")
+          ->getDataStaticPtr();
+  g_firstWindowPlacement = *placementValue;
+  // Normalize: to lower case, replace "centre" with "center"
+  std::transform(g_firstWindowPlacement.begin(), g_firstWindowPlacement.end(),
+                 g_firstWindowPlacement.begin(), ::tolower);
+  if (g_firstWindowPlacement == "centre")
+    g_firstWindowPlacement = "center";
+  // Validate allowed values
+  static const std::vector<std::string> allowed = {"auto",   "left", "right",
+                                                   "center", "top",  "bottom"};
+  if (std::find(allowed.begin(), allowed.end(), g_firstWindowPlacement) ==
+      allowed.end()) {
+    spdlog::warn(
+        "Invalid first_window_placement value '{}', falling back to 'auto'",
+        g_firstWindowPlacement);
+    g_firstWindowPlacement = "auto";
+  }
+  spdlog::info("First window placement set to '{}'", g_firstWindowPlacement);
+}
 } // namespace
+
+// Public getter for lane code
+const std::string &getFirstWindowPlacement() { return g_firstWindowPlacement; }
 
 APICALL EXPORT std::string PLUGIN_API_VERSION() { return HYPRLAND_API_VERSION; }
 
@@ -138,9 +168,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
                               Hyprlang::STRING{"onehalf"});
   HyprlandAPI::addConfigValue(PHANDLE, "plugin:scroller:focus_wrap",
                               Hyprlang::INT{0});
+  HyprlandAPI::addConfigValue(PHANDLE, "plugin:scroller:first_window_placement",
+                              Hyprlang::STRING{"auto"});
 
-  // Load width presets after config values are registered
   load_width_presets();
+  load_first_window_placement();
 
   dispatchers::addDispatchers();
 
