@@ -14,7 +14,6 @@
 #include <hyprland/src/layout/target/Target.hpp>
 #include <hyprland/src/managers/KeybindManager.hpp>
 #include <hyprland/src/plugins/PluginAPI.hpp>
-#include <hyprlang.hpp>
 #include <spdlog/spdlog.h>
 
 #include "../core/interval.h"
